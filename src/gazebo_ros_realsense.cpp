@@ -66,6 +66,7 @@ void GazeboRosRealsense::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   }
 
   RCLCPP_INFO(node_->get_logger(), "Loaded Realsense Gazebo ROS plugin.");
+  RCLCPP_INFO(node_->get_logger(), "COLOR_CAMERA_TOPIC: %s", cameraParamsMap_[COLOR_CAMERA_NAME].topic_name.c_str());
 }
 
 void GazeboRosRealsense::OnNewFrame(
@@ -76,6 +77,8 @@ void GazeboRosRealsense::OnNewFrame(
 
   // identify camera
   std::string camera_id = extractCameraName(cam->Name());
+  RCLCPP_INFO(node_->get_logger(), "CAMERA_FULL_NAME: %s", cam->Name().c_str());
+
   const std::map<std::string, image_transport::CameraPublisher *>
   camera_publishers = {
     {COLOR_CAMERA_NAME, &(this->color_pub_)},
@@ -84,6 +87,8 @@ void GazeboRosRealsense::OnNewFrame(
   };
   const auto image_pub = camera_publishers.at(camera_id);
 
+  RCLCPP_INFO(node_->get_logger(), "WILL BE PUBLISHING TO THE TOPIC: %s", image_pub->getTopic().c_str());
+  RCLCPP_INFO(node_->get_logger(), "-----------------------------------------");
   // copy data into image
   this->image_msg_.header.frame_id =
     this->cameraParamsMap_[camera_id].optical_frame;

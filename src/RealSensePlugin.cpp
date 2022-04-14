@@ -39,6 +39,24 @@ RealSensePlugin::RealSensePlugin()
   this->pointCloudCutOffMax_ = 5.0;
 }
 
+sensors::SensorManager * smanager;
+sensors::Sensor_V sensors_arr;
+
+sensors::SensorPtr FindCamera(std::string camera_name, std::string model_name)
+{
+  for (sensors::SensorPtr sensor : sensors_arr)
+  {
+    std::cout << "SENSOR: " << sensor->ScopedName().c_str() << std::endl;
+    if ((sensor->ScopedName().find(model_name) != std::string::npos)  && (sensor->ScopedName().find(camera_name) != std::string::npos))
+    {
+      std::cout << "FOUND A MATCHING CAMERA: " << sensor->ScopedName().c_str() << std::endl;
+      return sensor;
+    }
+  }
+  return nullptr;
+}
+
+
 /////////////////////////////////////////////////
 RealSensePlugin::~RealSensePlugin() {}
 
@@ -132,22 +150,31 @@ void RealSensePlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   this->world = this->rsModel->GetWorld();
 
   // Sensors Manager
-  sensors::SensorManager * smanager = sensors::SensorManager::Instance();
-
+  smanager = sensors::SensorManager::Instance();
   // Get Cameras Renderers
-  this->depthCam = std::dynamic_pointer_cast<sensors::DepthCameraSensor>(
-    smanager->GetSensor(prefix + DEPTH_CAMERA_NAME))
-    ->DepthCamera();
+  sensors_arr = smanager->GetSensors();
 
+
+
+
+
+
+  this->depthCam = std::dynamic_pointer_cast<sensors::DepthCameraSensor>(
+    FindCamera(prefix + DEPTH_CAMERA_NAME, this->rsModel->GetName()))
+    ->DepthCamera();
   this->ired1Cam = std::dynamic_pointer_cast<sensors::CameraSensor>(
-    smanager->GetSensor(prefix + IRED1_CAMERA_NAME))
+    FindCamera(prefix + IRED1_CAMERA_NAME, this->rsModel->GetName()))
     ->Camera();
   this->ired2Cam = std::dynamic_pointer_cast<sensors::CameraSensor>(
-    smanager->GetSensor(prefix + IRED2_CAMERA_NAME))
+    FindCamera(prefix + IRED2_CAMERA_NAME, this->rsModel->GetName()))
     ->Camera();
   this->colorCam = std::dynamic_pointer_cast<sensors::CameraSensor>(
-    smanager->GetSensor(prefix + COLOR_CAMERA_NAME))
+    FindCamera(prefix + COLOR_CAMERA_NAME, this->rsModel->GetName()))
     ->Camera();
+  std::cout << "DEPTH CAMERA WAS FOUND AND IT'S NAME IS : " << this->depthCam->ScopedName() << std::endl;
+  std::cout << "IRED1 CAMERA WAS FOUND AND IT'S NAME IS : " << this->ired1Cam->ScopedName() << std::endl;
+  std::cout << "IRED2 CAMERA WAS FOUND AND IT'S NAME IS : " << this->ired2Cam->ScopedName() << std::endl;
+  std::cout << "COLOR CAMERA WAS FOUND AND IT'S NAME IS : " << this->colorCam->ScopedName() << std::endl;
 
   // Check if camera renderers have been found successfuly
   if (!this->depthCam) {
@@ -189,6 +216,10 @@ void RealSensePlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   // Setup Publishers
   std::string rsTopicRoot = "~/" + this->rsModel->GetName();
 
+  std::cout << "RS TOPIC ROOT: " << rsTopicRoot << std::endl;
+  std::cout << "PREFIX: " << prefix << std::endl;
+  std::cout << "THIS->PREFIX: " << this->prefix << std::endl;
+
   this->depthPub = this->transportNode->Advertise<msgs::ImageStamped>(
     rsTopicRoot + DEPTH_CAMERA_TOPIC, 1, depthUpdateRate_);
   this->ired1Pub = this->transportNode->Advertise<msgs::ImageStamped>(
@@ -197,6 +228,10 @@ void RealSensePlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
     rsTopicRoot + IRED2_CAMERA_TOPIC, 1, infraredUpdateRate_);
   this->colorPub = this->transportNode->Advertise<msgs::ImageStamped>(
     rsTopicRoot + COLOR_CAMERA_TOPIC, 1, colorUpdateRate_);
+
+  std::cout << "AND THE TOPIC ITSELF: " << this->colorPub->GetTopic() << std::endl; 	
+
+  std::cout << "CAMERA NAME: " <<  this->colorCam->Name().c_str() << std::endl;
 
   // Listen to depth camera new frame event
   this->newDepthFrameConn = this->depthCam->ConnectNewDepthFrame(
@@ -225,6 +260,7 @@ void RealSensePlugin::OnNewFrame(
   const transport::PublisherPtr pub)
 {
   msgs::ImageStamped msg;
+  std::cout << "Hmmm, this is still called :/" << std::endl;
 
   // Set Simulation Time
   msgs::Set(msg.mutable_time(), this->world->SimTime());
