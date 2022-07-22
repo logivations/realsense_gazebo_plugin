@@ -53,10 +53,10 @@ void GazeboRosRealsense::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   this->color_pub_ = this->itnode_->advertiseCamera(
     cameraParamsMap_[COLOR_CAMERA_NAME].topic_name, 2);
-  this->ir1_pub_ = this->itnode_->advertiseCamera(
-    cameraParamsMap_[IRED1_CAMERA_NAME].topic_name, 2);
-  this->ir2_pub_ = this->itnode_->advertiseCamera(
-    cameraParamsMap_[IRED2_CAMERA_NAME].topic_name, 2);
+  // this->ir1_pub_ = this->itnode_->advertiseCamera(
+  //   cameraParamsMap_[IRED1_CAMERA_NAME].topic_name, 2);
+  // this->ir2_pub_ = this->itnode_->advertiseCamera(
+  //   cameraParamsMap_[IRED2_CAMERA_NAME].topic_name, 2);
   this->depth_pub_ = this->itnode_->advertiseCamera(
     cameraParamsMap_[DEPTH_CAMERA_NAME].topic_name, 2);
 
@@ -79,8 +79,8 @@ void GazeboRosRealsense::OnNewFrame(
   const std::map<std::string, image_transport::CameraPublisher *>
   camera_publishers = {
     {COLOR_CAMERA_NAME, &(this->color_pub_)},
-    {IRED1_CAMERA_NAME, &(this->ir1_pub_)},
-    {IRED2_CAMERA_NAME, &(this->ir2_pub_)},
+    // {IRED1_CAMERA_NAME, &(this->ir1_pub_)},
+    // {IRED2_CAMERA_NAME, &(this->ir2_pub_)},
   };
   const auto image_pub = camera_publishers.at(camera_id);
 
@@ -104,8 +104,8 @@ void GazeboRosRealsense::OnNewFrame(
   // identify camera rendering
   const std::map<std::string, rendering::CameraPtr> cameras = {
     {COLOR_CAMERA_NAME, this->colorCam},
-    {IRED1_CAMERA_NAME, this->ired1Cam},
-    {IRED2_CAMERA_NAME, this->ired2Cam},
+    // {IRED1_CAMERA_NAME, this->ired1Cam},
+    // {IRED2_CAMERA_NAME, this->ired2Cam},
   };
 
   // publish to ROS
@@ -260,12 +260,12 @@ std::string extractCameraName(const std::string & name)
   if (name.find(COLOR_CAMERA_NAME) != std::string::npos) {
     return COLOR_CAMERA_NAME;
   }
-  if (name.find(IRED1_CAMERA_NAME) != std::string::npos) {
-    return IRED1_CAMERA_NAME;
-  }
-  if (name.find(IRED2_CAMERA_NAME) != std::string::npos) {
-    return IRED2_CAMERA_NAME;
-  }
+  // if (name.find(IRED1_CAMERA_NAME) != std::string::npos) {
+  //   return IRED1_CAMERA_NAME;
+  // }
+  // if (name.find(IRED2_CAMERA_NAME) != std::string::npos) {
+  //   return IRED2_CAMERA_NAME;
+  // }
 
   RCLCPP_ERROR(rclcpp::get_logger("realsense_camera"), "Unknown camera name");
 
