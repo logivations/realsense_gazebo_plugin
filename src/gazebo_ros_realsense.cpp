@@ -2,6 +2,7 @@
 #include <sensor_msgs/fill_image.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/point_cloud2_iterator.hpp>
+#include <iostream>
 
 namespace
 {
@@ -27,8 +28,8 @@ GazeboRosRealsense::~GazeboRosRealsense()
 
 void GazeboRosRealsense::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 {
-
-  this->node_ = rclcpp::Node::make_shared("GazeboRealsenseNode");
+  auto options = rclcpp::NodeOptions().append_parameter_override("use_sim_time", true);
+  this->node_ = rclcpp::Node::make_shared("GazeboRealsenseNode", options);
 
   // Make sure the ROS node for Gazebo has already been initialized
   if (!rclcpp::ok()) {
