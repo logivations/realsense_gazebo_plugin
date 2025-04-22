@@ -200,7 +200,10 @@ void RealSensePlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   // Listen to depth camera new frame event
   this->newDepthFrameConn = this->depthCam->ConnectNewDepthFrame(
-    std::bind(&RealSensePlugin::OnNewDepthFrame, this));
+    std::bind(&RealSensePlugin::OnNewDepthFrame, this,
+      std::placeholders::_1, std::placeholders::_2, 
+      std::placeholders::_3, std::placeholders::_4, 
+      std::placeholders::_5));
 
   // this->newIred1FrameConn = this->ired1Cam->ConnectNewImageFrame(
   //   std::bind(
@@ -249,7 +252,11 @@ void RealSensePlugin::OnNewFrame(
 }
 
 /////////////////////////////////////////////////
-void RealSensePlugin::OnNewDepthFrame()
+void RealSensePlugin::OnNewDepthFrame(const float* image,
+  unsigned int width,
+  unsigned int height,
+  unsigned int depth,
+  const std::string& format)
 {
   // Get Depth Map dimensions
   unsigned int imageSize =

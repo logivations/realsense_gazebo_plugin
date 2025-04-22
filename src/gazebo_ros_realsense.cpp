@@ -219,7 +219,13 @@ void GazeboRosRealsense::OnNewDepthFrame()
   // get current time
   rclcpp::Time current_time = this->node_->now();
 
-  RealSensePlugin::OnNewDepthFrame();
+  const float* depth_data = this->depthCam->DepthData();
+  unsigned int width = this->depthCam->ImageWidth();
+  unsigned int height = this->depthCam->ImageHeight();
+  unsigned int depth = 2 * width;  
+  std::string format = "raw"; 
+
+  RealSensePlugin::OnNewDepthFrame(depth_data, width, height, depth, format);
 
   // copy data into image
   this->depth_msg_.header.frame_id =

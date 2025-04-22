@@ -60,7 +60,7 @@ public:
   /// \brief Callback that publishes a received Depth Camera Frame as an
   /// ImageStamped
   /// message.
-  virtual void OnNewDepthFrame();
+  virtual void OnNewDepthFrame(const float* image, unsigned int width, unsigned int height, unsigned int depth, const std::string& format);
 
   /// \brief Callback that publishes a received Camera Frame as an
   /// ImageStamped message.
