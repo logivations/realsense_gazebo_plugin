@@ -214,18 +214,12 @@ bool GazeboRosRealsense::FillPointCloudHelper(
   return true;
 }
 
-void GazeboRosRealsense::OnNewDepthFrame()
+void GazeboRosRealsense::OnNewDepthFrame(const float* image, unsigned int width, unsigned int height, unsigned int depth, const std::string& format)
 {
   // get current time
   rclcpp::Time current_time = this->node_->now();
 
-  const float* depth_data = this->depthCam->DepthData();
-  unsigned int width = this->depthCam->ImageWidth();
-  unsigned int height = this->depthCam->ImageHeight();
-  unsigned int depth = 2 * width;  
-  std::string format = "raw"; 
-
-  RealSensePlugin::OnNewDepthFrame(depth_data, width, height, depth, format);
+  RealSensePlugin::OnNewDepthFrame(image, width, height, depth, format);
 
   // copy data into image
   this->depth_msg_.header.frame_id =

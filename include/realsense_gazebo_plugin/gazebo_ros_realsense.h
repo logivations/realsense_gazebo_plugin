@@ -37,7 +37,7 @@ public:
   /// ImageStamped message.
 
 public:
-  virtual void OnNewDepthFrame();
+  virtual void OnNewDepthFrame(const float* image, unsigned int width, unsigned int height, unsigned int depth, const std::string& format);
 
   /// \brief Helper function to fill the pointcloud information
   bool FillPointCloudHelper(
