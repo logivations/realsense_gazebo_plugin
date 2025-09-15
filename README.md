@@ -149,7 +149,7 @@ In custom robot's `model.sdf`, we should attach the link, sensors, joint  and pl
       <colorUpdateRate>30.0</colorUpdateRate>
       <infraredUpdateRate>1.0</infraredUpdateRate>
       <depthTopicName>aligned_depth_to_color/image_raw</depthTopicName>
-      <depthCameraInfoTopicName>depth/camera_info</depthCameraInfoTopicName>
+      <depthCameraInfoTopicName>aligned_depth_to_color/camera_info</depthCameraInfoTopicName>
       <colorTopicName>color/image_raw</colorTopicName>
       <colorCameraInfoTopicName>color/camera_info</colorCameraInfoTopicName>
       <infrared1TopicName>infra1/image_raw</infrared1TopicName>

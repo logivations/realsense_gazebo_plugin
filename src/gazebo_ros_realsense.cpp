@@ -55,19 +55,19 @@ void GazeboRosRealsense::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   this->color_pub_ = this->node_->create_publisher<sensor_msgs::msg::Image>(
     cameraParamsMap_[COLOR_CAMERA_NAME].topic_name, best_effort_keep_last_1_qos);
   this->color_info_pub_ = this->node_->create_publisher<sensor_msgs::msg::CameraInfo>(
-    cameraParamsMap_[COLOR_CAMERA_NAME].camera_info_topic_name, best_effort_keep_last_1_qos);
+    cameraParamsMap_[COLOR_CAMERA_NAME].camera_info_topic_name, rclcpp::SystemDefaultsQoS());
   // this->ir1_pub_ = this->node_->create_publisher<sensor_msgs::msg::Image>(
   //   cameraParamsMap_[IRED1_CAMERA_NAME].topic_name, best_effort_keep_last_1_qos);
   // this->ir1_info_pub_ = this->node_->create_publisher<sensor_msgs::msg::CameraInfo>(
-  //   cameraParamsMap_[IRED1_CAMERA_NAME].camera_info_topic_name, best_effort_keep_last_1_qos);
+  //   cameraParamsMap_[IRED1_CAMERA_NAME].camera_info_topic_name, rclcpp::SystemDefaultsQoS());
   // this->ir2_pub_ = this->node_->create_publisher<sensor_msgs::msg::Image>(
   //   cameraParamsMap_[IRED2_CAMERA_NAME].topic_name, best_effort_keep_last_1_qos);
   // this->ir2_info_pub_ = this->node_->create_publisher<sensor_msgs::msg::CameraInfo>(
-  //   cameraParamsMap_[IRED2_CAMERA_NAME].camera_info_topic_name, best_effort_keep_last_1_qos);
+  //   cameraParamsMap_[IRED2_CAMERA_NAME].camera_info_topic_name, rclcpp::SystemDefaultsQoS());
   this->depth_pub_ = this->node_->create_publisher<sensor_msgs::msg::Image>(
     cameraParamsMap_[DEPTH_CAMERA_NAME].topic_name, best_effort_keep_last_1_qos);
   this->depth_info_pub_ = this->node_->create_publisher<sensor_msgs::msg::CameraInfo>(
-    cameraParamsMap_[DEPTH_CAMERA_NAME].camera_info_topic_name, best_effort_keep_last_1_qos);
+    cameraParamsMap_[DEPTH_CAMERA_NAME].camera_info_topic_name, rclcpp::SystemDefaultsQoS());
 
   if (pointCloud_) {
     this->pointcloud_pub_ = this->node_->create_publisher<sensor_msgs::msg::PointCloud2>(
