@@ -50,20 +50,28 @@ void GazeboRosRealsense::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   this->camera_info_manager_.reset(
     new camera_info_manager::CameraInfoManager(this->node_.get(), this->GetHandle()));
 
-  this->itnode_.reset(new image_transport::ImageTransport(this->node_));
+  auto best_effort_keep_last_1_qos = rclcpp::QoS(1).reliability(rclcpp::ReliabilityPolicy::BestEffort).history(rclcpp::HistoryPolicy::KeepLast);
 
-  this->color_pub_ = this->itnode_->advertiseCamera(
-    cameraParamsMap_[COLOR_CAMERA_NAME].topic_name, 2);
-  // this->ir1_pub_ = this->itnode_->advertiseCamera(
-  //   cameraParamsMap_[IRED1_CAMERA_NAME].topic_name, 2);
-  // this->ir2_pub_ = this->itnode_->advertiseCamera(
-  //   cameraParamsMap_[IRED2_CAMERA_NAME].topic_name, 2);
-  this->depth_pub_ = this->itnode_->advertiseCamera(
-    cameraParamsMap_[DEPTH_CAMERA_NAME].topic_name, 2);
+  this->color_pub_ = this->node_->create_publisher<sensor_msgs::msg::Image>(
+    cameraParamsMap_[COLOR_CAMERA_NAME].topic_name, best_effort_keep_last_1_qos);
+  this->color_info_pub_ = this->node_->create_publisher<sensor_msgs::msg::CameraInfo>(
+    cameraParamsMap_[COLOR_CAMERA_NAME].camera_info_topic_name, best_effort_keep_last_1_qos);
+  // this->ir1_pub_ = this->node_->create_publisher<sensor_msgs::msg::Image>(
+  //   cameraParamsMap_[IRED1_CAMERA_NAME].topic_name, best_effort_keep_last_1_qos);
+  // this->ir1_info_pub_ = this->node_->create_publisher<sensor_msgs::msg::CameraInfo>(
+  //   cameraParamsMap_[IRED1_CAMERA_NAME].camera_info_topic_name, best_effort_keep_last_1_qos);
+  // this->ir2_pub_ = this->node_->create_publisher<sensor_msgs::msg::Image>(
+  //   cameraParamsMap_[IRED2_CAMERA_NAME].topic_name, best_effort_keep_last_1_qos);
+  // this->ir2_info_pub_ = this->node_->create_publisher<sensor_msgs::msg::CameraInfo>(
+  //   cameraParamsMap_[IRED2_CAMERA_NAME].camera_info_topic_name, best_effort_keep_last_1_qos);
+  this->depth_pub_ = this->node_->create_publisher<sensor_msgs::msg::Image>(
+    cameraParamsMap_[DEPTH_CAMERA_NAME].topic_name, best_effort_keep_last_1_qos);
+  this->depth_info_pub_ = this->node_->create_publisher<sensor_msgs::msg::CameraInfo>(
+    cameraParamsMap_[DEPTH_CAMERA_NAME].camera_info_topic_name, best_effort_keep_last_1_qos);
 
   if (pointCloud_) {
     this->pointcloud_pub_ = this->node_->create_publisher<sensor_msgs::msg::PointCloud2>(
-      pointCloudTopic_, rclcpp::SystemDefaultsQoS());
+      pointCloudTopic_, best_effort_keep_last_1_qos);
   }
 
   RCLCPP_INFO(node_->get_logger(), "Loaded Realsense Gazebo ROS plugin.");
@@ -77,13 +85,20 @@ void GazeboRosRealsense::OnNewFrame(
 
   // identify camera
   std::string camera_id = extractCameraName(cam->Name());
-  const std::map<std::string, image_transport::CameraPublisher *>
+  const std::map<std::string, rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr>
   camera_publishers = {
-    {COLOR_CAMERA_NAME, &(this->color_pub_)},
-    // {IRED1_CAMERA_NAME, &(this->ir1_pub_)},
-    // {IRED2_CAMERA_NAME, &(this->ir2_pub_)},
+    {COLOR_CAMERA_NAME, this->color_pub_},
+    // {IRED1_CAMERA_NAME, this->ir1_pub_},
+    // {IRED2_CAMERA_NAME, this->ir2_pub_},
+  };
+  const std::map<std::string, rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr>
+  camera_info_publishers = {
+    {COLOR_CAMERA_NAME, this->color_info_pub_},
+    // {IRED1_CAMERA_NAME, this->ir1_info_pub_},
+    // {IRED2_CAMERA_NAME, this->ir2_info_pub_},
   };
   const auto image_pub = camera_publishers.at(camera_id);
+  const auto info_pub = camera_info_publishers.at(camera_id);
 
   // copy data into image
   this->image_msg_.header.frame_id =
@@ -113,7 +128,15 @@ void GazeboRosRealsense::OnNewFrame(
   // publish to ROS
   auto camera_info_msg =
     cameraInfo(this->image_msg_, cameras.at(camera_id)->HFOV().Radian());
-  image_pub->publish(this->image_msg_, camera_info_msg);
+
+  try {
+    image_pub->publish(this->image_msg_);
+    info_pub->publish(camera_info_msg);
+  } catch (const std::exception& e) {
+    RCLCPP_ERROR(this->node_->get_logger(),
+                 "Failed to publish image for camera '%s': %s",
+                 camera_id.c_str(), e.what());
+  }
 }
 
 // Referenced from gazebo_plugins
@@ -238,7 +261,9 @@ void GazeboRosRealsense::OnNewDepthFrame(const float* image, unsigned int width,
   // publish to ROS
   auto depth_info_msg =
     cameraInfo(this->depth_msg_, this->depthCam->HFOV().Radian());
-  this->depth_pub_.publish(this->depth_msg_, depth_info_msg);
+
+  this->depth_pub_->publish(this->depth_msg_);
+  this->depth_info_pub_->publish(depth_info_msg);
 
   if (pointCloud_ && this->pointcloud_pub_->get_subscription_count() > 0) {
     this->pointcloud_msg_.header = this->depth_msg_.header;
