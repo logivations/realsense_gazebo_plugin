@@ -74,6 +74,8 @@ void GazeboRosRealsense::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
       pointCloudTopic_, best_effort_keep_last_1_qos);
   }
 
+  loaded_.store(true, std::memory_order_release);
+
   RCLCPP_INFO(node_->get_logger(), "Loaded Realsense Gazebo ROS plugin.");
 }
 
@@ -81,6 +83,10 @@ void GazeboRosRealsense::OnNewFrame(
   const rendering::CameraPtr cam,
   const transport::PublisherPtr pub)
 {
+  if (!loaded_.load(std::memory_order_acquire)) {
+    return;
+  }
+
   rclcpp::Time current_time = this->node_->now();
 
   // identify camera
@@ -239,6 +245,10 @@ bool GazeboRosRealsense::FillPointCloudHelper(
 
 void GazeboRosRealsense::OnNewDepthFrame(const float* image, unsigned int width, unsigned int height, unsigned int depth, const std::string& format)
 {
+  if (!loaded_.load(std::memory_order_acquire)) {
+    return;
+  }
+
   // get current time
   rclcpp::Time current_time = this->node_->now();
 

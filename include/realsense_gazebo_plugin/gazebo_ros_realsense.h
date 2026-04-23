@@ -9,6 +9,7 @@
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <camera_info_manager/camera_info_manager.hpp>
 
+#include <atomic>
 #include <memory>
 #include <string>
 
@@ -73,6 +74,12 @@ protected:
 protected:
   sensor_msgs::msg::Image image_msg_, depth_msg_;
   sensor_msgs::msg::PointCloud2 pointcloud_msg_;
+
+  // True once Load() has finished creating all publishers. Sensor callbacks
+  // connected by RealSensePlugin::Load() can fire from the rendering thread
+  // before the derived Load() finishes building publishers, so guard against
+  // that race.
+  std::atomic<bool> loaded_{false};
 };
 }
 #endif /* _GAZEBO_ROS_REALSENSE_PLUGIN_ */
